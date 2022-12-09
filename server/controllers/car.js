@@ -74,23 +74,7 @@ exports.update = async (req, res) => {
     }
 };
 
-// list (for arrivals and best seller without pagination)
-// exports.list = async (req, res) => {
-//   try {
-//     // sort = createAt/updatedAt, order = desc/ asc limit = 3
-//     const { sort, order, limit } = req.body;
-//     const products = await Product.find({})
-//       .populate("category")
-//       .populate("subs")
-//       .sort([[sort, order]])
-//       .limit(limit)
-//       .exec();
 
-//     res.json(products);
-//   } catch (err) {
-//     console.log(err);
-//   }
-// };
 
 // list (for arrivals and best seller with pagination)
 exports.list = async (req, res) => {
