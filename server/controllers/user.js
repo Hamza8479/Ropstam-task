@@ -2,6 +2,7 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const sgMail = require('@sendgrid/mail')
+const nodemailer = require("nodemailer");
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
@@ -11,6 +12,18 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 //register
 exports.register = async (req, res) => {
     const { email } = req.body;
+    let testAccount = await nodemailer.createTestAccount();
+
+    let transporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user: testAccount.user, // generated ethereal user
+            pass: testAccount.pass, // generated ethereal password
+        },
+    });
+
     var chars = "0123456789abcdefghijklmnopqrstuvwxyz!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     var passwordLength = 12;
     var password = "";
@@ -42,27 +55,45 @@ exports.register = async (req, res) => {
             });
             await user.save();
 
-            const msg = {
-                to: user.email, // Change to your recipient
+            // const msg = {
+            //     to: user.email, // Change to your recipient
+            //     from: {
+            //         name: 'Hamza',
+            //         email: 'hamzazaman91@gmail.com'
+            //     }, // Change to your verified sender
+            //     subject: 'Password for login',
+            //     text: 'Thank you for sign up in our app',
+            //     html: `'<h1>your password: ${password}</h1>`,
+            // }
+
+            // sgMail
+            //     .send(msg)
+            //     .then((response) => {
+            //         console.log('responeee', response)
+            //         console.log(response[0].statusCode)
+            //         console.log(response[0].headers)
+            //     })
+            //     .catch((error) => {
+            //         console.error(error)
+            //     })
+
+            let info = await transporter.sendMail({
                 from: {
                     name: 'Hamza',
                     email: 'hamzazaman91@gmail.com'
-                }, // Change to your verified sender
+                },
+                to: user.email,
                 subject: 'Password for login',
                 text: 'Thank you for sign up in our app',
                 html: `'<h1>your password: ${password}</h1>`,
-            }
+            });
 
-            sgMail
-                .send(msg)
-                .then((response) => {
-                    console.log('responeee', response)
-                    console.log(response[0].statusCode)
-                    console.log(response[0].headers)
-                })
-                .catch((error) => {
-                    console.error(error)
-                })
+
+            console.log("Message sent: %s", info.messageId);
+            // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+
+            // Preview only available when sending through an Ethereal account
+            console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
 
             res.status(201).json({ message: "User Registered Successfully." });
         }
